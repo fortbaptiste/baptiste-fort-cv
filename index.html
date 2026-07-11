@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8f8f6" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23373734'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial' font-size='32' font-weight='700' fill='white'%3EB%3C/text%3E%3C/svg%3E" />
+    <meta
+      name="description"
+      content="Portfolio conversationnel de Baptiste Fort, AI Engineer spécialisé en SaaS métier, agents IA et automatisation."
+    />
+    <title>Baptiste Fort — AI Engineer</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="i-sidebar" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+        <path d="M9 4v16"></path>
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"></path>
+      </symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24">
+        <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 9.8 9.8 0 0 1-3.2-.5L4 20l1.4-4A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path>
+      </symbol>
+      <symbol id="i-briefcase" viewBox="0 0 24 24">
+        <rect x="3" y="7" width="18" height="13" rx="2"></rect>
+        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"></path>
+      </symbol>
+      <symbol id="i-stack" viewBox="0 0 24 24">
+        <path d="m12 3 9 5-9 5-9-5 9-5Z"></path>
+        <path d="m3 12 9 5 9-5M3 16l9 5 9-5"></path>
+      </symbol>
+      <symbol id="i-code" viewBox="0 0 24 24">
+        <path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"></path>
+      </symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+        <path d="m4 7 8 6 8-6"></path>
+      </symbol>
+      <symbol id="i-palette" viewBox="0 0 24 24">
+        <path d="M12 3a9 9 0 0 0 0 18h1.3a1.7 1.7 0 0 0 1.2-2.9 1.7 1.7 0 0 1 1.2-2.9H18A3 3 0 0 0 21 12a9 9 0 0 0-9-9Z"></path>
+        <circle cx="7.5" cy="10" r="1"></circle>
+        <circle cx="10" cy="6.8" r="1"></circle>
+        <circle cx="14" cy="6.8" r="1"></circle>
+        <circle cx="16.5" cy="10" r="1"></circle>
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24">
+        <path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path>
+      </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24">
+        <path d="M6 2h8l4 4v16H6V2Z"></path>
+        <path d="M14 2v5h5M9 12h6M9 16h6"></path>
+      </symbol>
+      <symbol id="i-history" viewBox="0 0 24 24">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
+        <path d="M3 3v5h5M12 7v5l3 2"></path>
+      </symbol>
+      <symbol id="i-bulb" viewBox="0 0 24 24">
+        <path d="M9 18h6M10 22h4"></path>
+        <path d="M8.5 15.5A7 7 0 1 1 15.5 15.5c-.8.6-1.2 1.3-1.3 2.5h-4.4c-.1-1.2-.5-1.9-1.3-2.5Z"></path>
+      </symbol>
+      <symbol id="i-agent" viewBox="0 0 24 24">
+        <rect x="4" y="6" width="16" height="13" rx="4"></rect>
+        <path d="M12 3v3M8 12h.01M16 12h.01M9 16h6"></path>
+      </symbol>
+      <symbol id="i-coffee" viewBox="0 0 24 24">
+        <path d="M4 8h13v6a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6V8Z"></path>
+        <path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 4v2M12 3v3"></path>
+      </symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24">
+        <path d="m8 10 4 4 4-4"></path>
+      </symbol>
+      <symbol id="i-mic" viewBox="0 0 24 24">
+        <rect x="9" y="3" width="6" height="12" rx="3"></rect>
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"></path>
+      </symbol>
+      <symbol id="i-send" viewBox="0 0 24 24">
+        <path d="m12 19 7-7-7-7M5 12h14"></path>
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"></circle>
+        <path d="M4 21a8 8 0 0 1 16 0"></path>
+      </symbol>
+      <symbol id="i-x" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6 6 18"></path>
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6"></path>
+      </symbol>
+    </svg>
+
+    <div class="app-shell">
+      <aside class="rail" id="rail" aria-label="Navigation du portfolio">
+        <div class="rail-top">
+          <button class="icon-button rail-toggle" id="railToggle" aria-label="Ouvrir la barre latérale" aria-expanded="false">
+            <svg><use href="#i-sidebar"></use></svg>
+          </button>
+        </div>
+
+        <nav class="rail-nav" aria-label="Sections">
+          <button class="rail-item is-primary" data-action="reset" aria-label="Nouvelle exploration">
+            <span class="rail-icon"><svg><use href="#i-plus"></use></svg></span>
+            <span class="rail-label">Nouvelle exploration</span>
+          </button>
+          <button class="rail-item" data-action="cv" aria-label="Voir mon CV">
+            <span class="rail-icon"><svg><use href="#i-file"></use></svg></span>
+            <span class="rail-label">Mon CV</span>
+          </button>
+          <button class="rail-item" data-action="experiences" aria-label="Explorer mes expériences">
+            <span class="rail-icon"><svg><use href="#i-briefcase"></use></svg></span>
+            <span class="rail-label">Expériences</span>
+          </button>
+          <button class="rail-item" data-action="agents" aria-label="Découvrir mes agents IA">
+            <span class="rail-icon"><svg><use href="#i-agent"></use></svg></span>
+            <span class="rail-label">Agents IA</span>
+          </button>
+          <button class="rail-item" data-action="why" aria-label="Pourquoi travailler avec moi">
+            <span class="rail-icon"><svg><use href="#i-bulb"></use></svg></span>
+            <span class="rail-label">Pourquoi moi ?</span>
+          </button>
+          <button class="rail-item" data-action="contact" aria-label="Me contacter">
+            <span class="rail-icon"><svg><use href="#i-mail"></use></svg></span>
+            <span class="rail-label">Contact</span>
+          </button>
+        </nav>
+
+        <div class="rail-spacer"></div>
+
+        <div class="rail-bottom">
+          <button class="rail-item" id="themeToggle" aria-label="Changer de thème">
+            <span class="rail-icon"><svg><use href="#i-palette"></use></svg></span>
+            <span class="rail-label">Changer d’ambiance</span>
+          </button>
+          <a class="rail-item download-link" href="/api/cv" download="Baptiste-Fort-CV-IA.pdf" aria-label="Télécharger le CV">
+            <span class="rail-icon"><svg><use href="#i-download"></use></svg><i class="status-dot"></i></span>
+            <span class="rail-label">Télécharger le CV</span>
+          </a>
+          <button class="profile-button" data-action="contact" aria-label="Baptiste Fort, contact">
+            <span class="avatar">B</span>
+            <span class="profile-copy"><strong>Baptiste Fort</strong><small>AI Engineer</small></span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="rail-backdrop" id="railBackdrop" hidden></div>
+
+      <main class="main-stage" id="mainStage">
+        <div class="top-status" aria-label="Statut professionnel">
+          <span>Portfolio IA</span>
+          <i></i>
+          <button data-action="contact">Me contacter</button>
+        </div>
+
+        <button class="corner-mark" data-action="why" aria-label="Pourquoi travailler avec Baptiste ?">
+          <span class="mini-spark" aria-hidden="true">✦</span>
+        </button>
+
+        <section class="hero" id="hero">
+          <div class="greeting" id="greeting">
+            <svg class="brand-spark" viewBox="0 0 40 40" aria-hidden="true">
+              <g stroke="currentColor" stroke-width="3.4" stroke-linecap="round">
+                <path d="M20 2v13M20 25v13"></path>
+                <path d="M2 20h13M25 20h13"></path>
+                <path d="m7.3 7.3 9.2 9.2M23.5 23.5l9.2 9.2"></path>
+                <path d="m32.7 7.3-9.2 9.2M16.5 23.5l-9.2 9.2"></path>
+                <path d="m13.1 3.7 4.3 10.6M22.6 25.7l4.3 10.6"></path>
+                <path d="m36.3 13.1-10.6 4.3M14.3 22.6 3.7 26.9"></path>
+              </g>
+            </svg>
+            <h1>Bonjour, je suis Baptiste — l’IA, en concret.</h1>
+          </div>
+
+          <section class="conversation" id="conversation" aria-label="Conversation avec le portfolio" hidden>
+            <div class="message-list" id="messageList" role="log" aria-live="polite" aria-relevant="additions text"></div>
+            <div class="conversation-end" id="conversationEnd" aria-hidden="true"></div>
+          </section>
+
+          <div class="composer-wrap">
+            <form class="composer" id="promptForm">
+              <div
+                class="prompt-input"
+                id="promptInput"
+                contenteditable="true"
+                role="textbox"
+                aria-label="Posez une question sur le parcours de Baptiste"
+                aria-multiline="true"
+                data-placeholder="Que voulez-vous savoir sur mon parcours ?"
+              ></div>
+
+              <div class="recording-panel" id="recordingPanel" aria-label="Enregistrement d’une note vocale" hidden>
+                <div class="recording-status">
+                  <span class="recording-live-dot" aria-hidden="true"></span>
+                  <span class="recording-timer" id="recordingTimer">0:00</span>
+                </div>
+                <div class="recording-wave" id="recordingWave" aria-hidden="true"></div>
+                <button class="recording-control recording-cancel" id="recordingCancel" type="button" aria-label="Annuler la note vocale">
+                  <svg><use href="#i-x"></use></svg>
+                </button>
+                <button class="recording-control recording-confirm" id="recordingConfirm" type="button" aria-label="Valider la note vocale">
+                  <svg><use href="#i-check"></use></svg>
+                </button>
+              </div>
+
+              <div class="composer-toolbar" id="composerToolbar">
+                <div class="toolbar-left">
+                  <button class="toolbar-button" id="plusButton" type="button" aria-label="Voir plus d’options" aria-expanded="false" aria-controls="plusMenu">
+                    <svg><use href="#i-plus"></use></svg>
+                  </button>
+                  <div class="floating-menu plus-menu" id="plusMenu" role="menu" hidden>
+                    <a href="assets/Baptiste-Fort-CV-IA.pdf" target="_blank" rel="noopener" role="menuitem">
+                      <svg><use href="#i-file"></use></svg> Ouvrir le CV complet
+                    </a>
+                    <a href="mailto:baptiste.fort.pro@gmail.com" role="menuitem">
+                      <svg><use href="#i-mail"></use></svg> M’envoyer un email
+                    </a>
+                  </div>
+                </div>
+
+                <div class="toolbar-grow"></div>
+
+                <div class="model-wrap">
+                  <button class="model-button" id="modelButton" type="button" aria-label="Profil : AI Engineer" aria-expanded="false" aria-controls="modelMenu">
+                    <span>AI Engineer</span><em> Disponible</em>
+                    <svg><use href="#i-chevron"></use></svg>
+                  </button>
+                  <div class="floating-menu model-menu" id="modelMenu" role="dialog" aria-label="Spécialités actives" hidden>
+                    <strong>Spécialités actives</strong>
+                    <span>Agents IA & orchestration</span>
+                    <span>SaaS métier & plateformes</span>
+                    <span>RAG, automatisation & infrastructure</span>
+                  </div>
+                </div>
+
+                <button class="toolbar-button audio-button" id="audioButton" type="button" aria-label="Enregistrer une note vocale">
+                  <svg><use href="#i-mic"></use></svg>
+                </button>
+                <button class="send-button" id="sendButton" type="submit" aria-label="Envoyer la question">
+                  <svg><use href="#i-send"></use></svg>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <ul class="prompt-chips" id="promptChips" aria-label="Questions suggérées">
+            <li><button data-action="cv"><svg><use href="#i-file"></use></svg><span>Voir mon CV</span></button></li>
+            <li><button data-action="experiences"><svg><use href="#i-history"></use></svg><span>Expériences</span></button></li>
+            <li><button data-action="why"><svg><use href="#i-bulb"></use></svg><span>Pourquoi moi ?</span></button></li>
+            <li><button data-action="agents"><svg><use href="#i-agent"></use></svg><span>Mes agents IA</span></button></li>
+            <li><button data-action="about"><svg><use href="#i-user"></use></svg><span>À propos</span></button></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="config.js"></script>
+    <script src="app.js?v=3"></script>
+  </body>
+</html>

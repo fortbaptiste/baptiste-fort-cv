@@ -1,0 +1,14 @@
+{
+  "name": "baptiste-fort-conversational-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "build:pages": "node scripts/build-pages.mjs",
+    "check": "node --check app.js && node --check server.mjs && node --check persona.mjs && node --check scripts/build-pages.mjs"
+  },
+  "dependencies": {
+    "openai": "^6.46.0"
+  }
+}
