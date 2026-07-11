@@ -1,10 +1,10 @@
 # Portfolio conversationnel — Baptiste Fort
 
-Portfolio CV inspiré d’une interface de chat : conversation continue, réponses streamées et notes vocales transcrites côté serveur.
+Portfolio CV inspiré d’une interface de chat : conversation continue, réponses streamées et notes vocales transcrites côté serveur. Le site public reste sur GitHub Pages et son API est exécutée par un Cloudflare Worker.
 
 ## Sécurité de la clé OpenAI
 
-La clé reste uniquement dans `.env`, côté serveur. Elle n’est jamais incluse dans `index.html`, `app.js`, les requêtes statiques ou le dépôt Git.
+En local, la clé reste uniquement dans `.env`. En production, elle est stockée comme secret chiffré Cloudflare `OPENAI_API_KEY`. Elle n’est jamais incluse dans `index.html`, `app.js`, les requêtes statiques ou le dépôt Git.
 
 La clé précédemment publiée dans une conversation doit être révoquée. Ajoutez uniquement une nouvelle clé dans `.env` :
 
@@ -45,3 +45,24 @@ Ne plus utiliser `python3 -m http.server` : le chat et la transcription passent 
 - responsive desktop, tablette, mobile et paysage.
 
 Sans clé serveur valide, le chat et la transcription affichent une erreur de configuration explicite. Aucune réponse de portfolio n’est simulée ou écrite en dur.
+
+## Déploiement Cloudflare Worker
+
+Le Worker expose `/api/status`, `/api/chat` et `/api/transcribe`. Il applique une validation d’origine, des limites de taille et quatre compteurs anti-abus avant les appels OpenAI.
+
+```bash
+npx wrangler login --use-keyring
+npx wrangler secret put OPENAI_API_KEY
+npm run worker:deploy
+```
+
+Après le déploiement, relier GitHub Pages à la racine du Worker, sans slash final ni chemin `/api` :
+
+```bash
+gh variable set PORTFOLIO_API_BASE_URL \
+  --repo fortbaptiste/baptiste-fort-cv \
+  --body "https://baptiste-fort-cv-api.<sous-domaine>.workers.dev"
+gh workflow run pages.yml --repo fortbaptiste/baptiste-fort-cv
+```
+
+La clé OpenAI n’est jamais stockée dans les variables GitHub Pages.

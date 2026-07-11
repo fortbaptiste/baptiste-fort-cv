@@ -455,15 +455,6 @@ async function startRecording() {
   }
 }
 
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 async function finishRecording(shouldSend) {
   if (!mediaRecorder || composer.dataset.mode !== "recording") return;
 
@@ -490,11 +481,10 @@ async function finishRecording(shouldSend) {
   try {
     const blob = await blobPromise;
     if (!blob.size) throw new Error("La note vocale est vide.");
-    const audio = await blobToBase64(blob);
     const response = await fetch(apiUrl("/api/transcribe"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ audio, mimeType: blob.type || recordingMimeType })
+      headers: { "Content-Type": blob.type || recordingMimeType || "audio/webm" },
+      body: blob
     });
     const payload = await response.json();
     if (!response.ok || !payload.text) throw new Error(payload.error || "La transcription a échoué.");

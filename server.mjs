@@ -90,7 +90,7 @@ function rateLimited(req, bucket, max, windowMs = 10 * 60 * 1000) {
   return false;
 }
 
-async function readJson(req, maxBytes = 256_000) {
+async function readBytes(req, maxBytes = 256_000) {
   const chunks = [];
   let total = 0;
   for await (const chunk of req) {
@@ -98,8 +98,13 @@ async function readJson(req, maxBytes = 256_000) {
     if (total > maxBytes) throw Object.assign(new Error("Payload trop volumineux"), { statusCode: 413 });
     chunks.push(chunk);
   }
+  return Buffer.concat(chunks);
+}
+
+async function readJson(req, maxBytes = 256_000) {
+  const body = await readBytes(req, maxBytes);
   try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+    return JSON.parse(body.toString("utf8") || "{}");
   } catch {
     throw Object.assign(new Error("JSON invalide"), { statusCode: 400 });
   }
@@ -181,7 +186,7 @@ async function handleChat(req, res) {
 }
 
 function audioExtension(mimeType) {
-  if (mimeType.includes("mp4")) return "m4a";
+  if (mimeType.includes("mp4") || mimeType.includes("x-m4a")) return "m4a";
   if (mimeType.includes("ogg")) return "ogg";
   if (mimeType.includes("wav")) return "wav";
   return "webm";
@@ -191,14 +196,22 @@ async function handleTranscription(req, res) {
   if (!originAllowed(req)) return json(res, 403, { error: "Origine refusée" });
   if (rateLimited(req, "audio", 15)) return json(res, 429, { error: "Trop de notes vocales. Réessayez plus tard." });
 
-  const body = await readJson(req, 12_000_000);
-  const mimeType = typeof body.mimeType === "string" ? body.mimeType : "audio/webm";
-  const encoded = typeof body.audio === "string" ? body.audio : "";
-  if (!/^audio\/(webm|mp4|ogg|wav|mpeg)/.test(mimeType) || !/^[A-Za-z0-9+/=]+$/.test(encoded)) {
+  const contentType = String(req.headers["content-type"] || "").toLowerCase();
+  let mimeType;
+  let audio;
+  if (contentType.startsWith("audio/")) {
+    mimeType = contentType.split(";")[0].trim();
+    audio = await readBytes(req, 8_000_000);
+  } else {
+    const body = await readJson(req, 12_000_000);
+    mimeType = typeof body.mimeType === "string" ? body.mimeType : "audio/webm";
+    const encoded = typeof body.audio === "string" ? body.audio : "";
+    if (!/^[A-Za-z0-9+/=]+$/.test(encoded)) return json(res, 400, { error: "Note vocale invalide" });
+    audio = Buffer.from(encoded, "base64");
+  }
+  if (!/^audio\/(webm|mp4|x-m4a|ogg|wav|mpeg)/.test(mimeType)) {
     return json(res, 400, { error: "Note vocale invalide" });
   }
-
-  const audio = Buffer.from(encoded, "base64");
   if (!audio.length || audio.length > 8_000_000) return json(res, 413, { error: "La note vocale est trop longue" });
 
   if (!client) return json(res, 503, { error: "La transcription sera disponible après configuration de la clé serveur." });
@@ -208,11 +221,11 @@ async function handleTranscription(req, res) {
     const transcription = await client.audio.transcriptions.create({
       file,
       model: TRANSCRIBE_MODEL,
-      response_format: "text",
+      response_format: "json",
       language: "fr",
       prompt: "Conversation professionnelle au sujet du CV de Baptiste Fort, AI Engineer : n8n, RAG, agents IA, SAGS, BrokerOne, Prévoté, ABILWAYS, SOMA, Vitreflam."
     });
-    const text = typeof transcription === "string" ? transcription : transcription.text;
+    const text = transcription.text;
     return json(res, 200, { text: String(text || "").trim() });
   } catch (error) {
     console.error("OpenAI transcription error:", error?.status || error?.name || "unknown");
