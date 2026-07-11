@@ -27,18 +27,12 @@ const API_BASE_URL = String(publicConfig.apiBaseUrl || "").replace(/\/$/, "");
 const apiUrl = (pathname) => `${API_BASE_URL}${pathname}`;
 const downloadLink = document.querySelector(".download-link");
 
-if (downloadLink) {
-  if (API_BASE_URL) downloadLink.href = apiUrl("/api/cv");
-  else if (window.location.hostname.endsWith(".github.io")) downloadLink.href = "assets/Baptiste-Fort-CV-IA.pdf";
-}
-
 const prompts = {
   cv: "Présentez-moi votre CV en 30 secondes.",
   experiences: "Quelles expériences montrent le mieux ce que vous savez construire ?",
   why: "Pourquoi devrions-nous travailler avec vous ?",
   agents: "Quels agents IA avez-vous réellement conçus ?",
-  about: "Parlez-moi de vous, au-delà de votre stack.",
-  contact: "Comment puis-je vous contacter ?"
+  about: "Parlez-moi de vous, au-delà de votre stack."
 };
 
 const messages = [];
@@ -98,6 +92,40 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("is-visible");
   toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 3200);
+}
+
+async function downloadCv(event) {
+  event.preventDefault();
+  if (downloadLink.dataset.downloading === "true") return;
+  downloadLink.dataset.downloading = "true";
+  showToast("Préparation du CV…");
+
+  try {
+    const response = await fetch(downloadLink.href, { cache: "no-store" });
+    if (!response.ok) throw new Error("CV indisponible");
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = "Baptiste-Fort-CV-IA.pdf";
+    anchor.hidden = true;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+    showToast("Téléchargement du CV lancé.");
+  } catch {
+    const fallback = document.createElement("a");
+    fallback.href = downloadLink.href;
+    fallback.download = "Baptiste-Fort-CV-IA.pdf";
+    fallback.hidden = true;
+    document.body.append(fallback);
+    fallback.click();
+    fallback.remove();
+    showToast("Téléchargement du CV lancé.");
+  } finally {
+    delete downloadLink.dataset.downloading;
+  }
 }
 
 function promptText() {
@@ -500,6 +528,7 @@ railBackdrop.addEventListener("click", () => {
   setRail(false);
   railToggle.focus();
 });
+downloadLink?.addEventListener("click", downloadCv);
 
 promptInput.addEventListener("input", () => composer.classList.toggle("has-text", Boolean(promptText())));
 promptInput.addEventListener("keydown", (event) => {

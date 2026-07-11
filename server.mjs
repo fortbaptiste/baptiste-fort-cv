@@ -156,8 +156,8 @@ async function handleChat(req, res) {
       model: CHAT_MODEL,
       instructions: `${SYSTEM_PROMPT}\n\n${FACTUAL_CONTEXT}`,
       input: messages,
-      reasoning: { effort: "none" },
-      max_output_tokens: 900,
+      reasoning: { effort: "low" },
+      max_output_tokens: 650,
       store: false,
       stream: true
     });

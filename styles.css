@@ -321,6 +321,8 @@ svg {
   border: 0;
   border-radius: 10px;
   background: transparent;
+  color: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -425,16 +427,19 @@ svg {
   opacity: 0.32;
 }
 
-.top-status button {
+.top-status button,
+.top-status a {
   padding: 0;
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--text-500) 45%, transparent);
   background: transparent;
   color: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.top-status button:hover {
+.top-status button:hover,
+.top-status a:hover {
   color: var(--text-300);
 }
 
