@@ -8,7 +8,7 @@
     "build:pages": "node scripts/build-pages.mjs",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "check": "node --check app.js && node --check server.mjs && node --check persona.mjs && node --check worker.mjs && node --check scripts/build-pages.mjs"
+    "check": "node --check app.js && node --check server.mjs && node --check persona.mjs && node --check scope-guard.mjs && node --check worker.mjs && node --check scripts/build-pages.mjs"
   },
   "dependencies": {
     "openai": "^6.46.0"

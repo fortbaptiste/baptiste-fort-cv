@@ -1,4 +1,11 @@
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
+import {
+  buildScopeGuardInput,
+  OUT_OF_SCOPE_RESPONSE,
+  parseScopeDecision,
+  SCOPE_DECISION_FORMAT,
+  SCOPE_GUARD_INSTRUCTIONS
+} from "./scope-guard.mjs";
 
 const CHAT_MODEL = "gpt-5.4-mini";
 const TRANSCRIBE_MODEL = "gpt-4o-mini-transcribe";
@@ -149,8 +156,52 @@ function openAiHeaders(env) {
   };
 }
 
+async function classifyScope(messages, env) {
+  const upstream = await fetch(`${OPENAI_API}/responses`, {
+    method: "POST",
+    headers: openAiHeaders(env),
+    body: JSON.stringify({
+      model: CHAT_MODEL,
+      instructions: SCOPE_GUARD_INSTRUCTIONS,
+      input: buildScopeGuardInput(messages),
+      reasoning: { effort: "none" },
+      max_output_tokens: 120,
+      text: { format: SCOPE_DECISION_FORMAT },
+      store: false
+    })
+  });
+
+  if (!upstream.ok) {
+    console.error("OpenAI scope guard error", upstream.status, upstream.headers.get("x-request-id") || "");
+    throw new HttpError("Le périmètre de la question n’a pas pu être vérifié. Réessayez dans un instant.", 502);
+  }
+
+  try {
+    return parseScopeDecision(await upstream.json());
+  } catch {
+    console.error("OpenAI scope guard returned an invalid decision", upstream.headers.get("x-request-id") || "");
+    throw new HttpError("Le périmètre de la question n’a pas pu être vérifié. Réessayez dans un instant.", 502);
+  }
+}
+
 function emitSse(controller, payload) {
   controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+}
+
+function fixedSseResponse(message, request, env) {
+  const body = [
+    `data: ${JSON.stringify({ type: "delta", delta: message })}\n\n`,
+    `data: ${JSON.stringify({ type: "done" })}\n\n`
+  ].join("");
+  return new Response(body, {
+    status: 200,
+    headers: {
+      ...responseHeaders(request, env),
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "X-Portfolio-AI-Model": CHAT_MODEL,
+      "X-Portfolio-Scope": "blocked"
+    }
+  });
 }
 
 function transformOpenAiSse(stream) {
@@ -209,6 +260,9 @@ async function handleChat(request, env) {
   await enforceRateLimits(request, env, "chat");
   const body = await readJson(request);
   const messages = cleanMessages(body.messages);
+  const scope = await classifyScope(messages, env);
+
+  if (!scope.allowed) return fixedSseResponse(OUT_OF_SCOPE_RESPONSE, request, env);
 
   const upstream = await fetch(`${OPENAI_API}/responses`, {
     method: "POST",
@@ -303,6 +357,7 @@ export default {
             configured: Boolean(env.OPENAI_API_KEY),
             aiEnabled: Boolean(env.OPENAI_API_KEY),
             chatModel: CHAT_MODEL,
+            scopeGuard: true,
             voice: Boolean(env.OPENAI_API_KEY),
             runtime: "cloudflare-worker"
           },

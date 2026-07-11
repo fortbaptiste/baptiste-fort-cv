@@ -4,6 +4,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import OpenAI from "openai";
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
+import {
+  buildScopeGuardInput,
+  OUT_OF_SCOPE_RESPONSE,
+  parseScopeDecision,
+  SCOPE_DECISION_FORMAT,
+  SCOPE_GUARD_INSTRUCTIONS
+} from "./scope-guard.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4173);
@@ -142,6 +149,19 @@ function sse(res, payload) {
   res.write(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
+async function classifyScope(messages) {
+  const response = await client.responses.create({
+    model: CHAT_MODEL,
+    instructions: SCOPE_GUARD_INSTRUCTIONS,
+    input: buildScopeGuardInput(messages),
+    reasoning: { effort: "none" },
+    max_output_tokens: 120,
+    text: { format: SCOPE_DECISION_FORMAT },
+    store: false
+  });
+  return parseScopeDecision(response);
+}
+
 async function handleChat(req, res) {
   if (!originAllowed(req)) return json(res, 403, { error: "Origine refusée" });
   if (rateLimited(req, "chat", 40)) return json(res, 429, { error: "Trop de messages. Réessayez dans quelques minutes." });
@@ -154,7 +174,21 @@ async function handleChat(req, res) {
     });
   }
 
+  let scope;
+  try {
+    scope = await classifyScope(messages);
+  } catch (error) {
+    console.error("OpenAI scope guard error:", error?.status || error?.name || "unknown");
+    return json(res, 502, { error: "Le périmètre de la question n’a pas pu être vérifié. Réessayez dans un instant." });
+  }
+
   initSse(res);
+
+  if (!scope.allowed) {
+    sse(res, { type: "delta", delta: OUT_OF_SCOPE_RESPONSE });
+    sse(res, { type: "done" });
+    return res.end();
+  }
 
   try {
     const stream = await client.responses.create({
@@ -303,6 +337,7 @@ const server = http.createServer(async (req, res) => {
         configured: Boolean(client),
         aiEnabled: Boolean(client),
         chatModel: CHAT_MODEL,
+        scopeGuard: true,
         voice: Boolean(client)
       });
     }
