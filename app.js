@@ -107,7 +107,7 @@ async function downloadCv(event) {
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
-    anchor.download = "Baptiste-Fort-CV-IA.pdf";
+    anchor.download = "BAPTISTE-FORT-CV.pdf";
     anchor.hidden = true;
     document.body.append(anchor);
     anchor.click();
@@ -117,7 +117,7 @@ async function downloadCv(event) {
   } catch {
     const fallback = document.createElement("a");
     fallback.href = downloadLink.href;
-    fallback.download = "Baptiste-Fort-CV-IA.pdf";
+    fallback.download = "BAPTISTE-FORT-CV.pdf";
     fallback.hidden = true;
     document.body.append(fallback);
     fallback.click();

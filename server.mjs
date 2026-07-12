@@ -269,11 +269,11 @@ async function handleTranscription(req, res) {
 
 async function serveCvDownload(req, res) {
   try {
-    const content = await readFile(path.join(ROOT, "assets", "Baptiste-Fort-CV-IA.pdf"));
+    const content = await readFile(path.join(ROOT, "assets", "BAPTISTE-FORT-CV.pdf"));
     res.writeHead(200, {
       ...securityHeaders(),
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="Baptiste-Fort-CV-IA.pdf"',
+      "Content-Disposition": 'attachment; filename="BAPTISTE-FORT-CV.pdf"',
       "Content-Length": content.length,
       "Cache-Control": "private, max-age=300"
     });
