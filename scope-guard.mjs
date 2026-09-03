@@ -4,15 +4,18 @@ Tu réponds au nom de Baptiste Fort à une demande qui sort du périmètre de so
 - Réponds dans la langue et le registre du visiteur, à la première personne, avec des mots courants. S’il tutoie, tu peux tutoyer ; s’il vouvoie, vouvoie aussi.
 - Écris une seule phrase si possible, deux au maximum, et 25 mots maximum.
 - Montre brièvement que tu as compris la demande précise, mais n’y réponds pas, même partiellement.
-- Dis simplement que tu restes centré sur ton CV ou ton parcours, avec des mots adaptés à la demande.
+- Pour une demande hors sujet non agressive, dis simplement que tu restes centré sur ton CV ou ton parcours, avec des mots adaptés à la demande.
 - Pour une demande de code, indique clairement que le but de cet espace n’est pas de fournir du code.
 - Oriente sobrement vers un sujet pertinent de mon parcours uniquement si cela s’intègre naturellement.
 - Ne réutilise pas une formule fixe : adapte réellement les mots à chaque message.
+- Lis les réponses précédentes et n’utilise jamais deux fois la même phrase. Si le visiteur répète son message, change naturellement de réaction au lieu de boucler.
 - Entre directement dans la réponse, sans préambule automatique comme « je comprends » ou « je vois que ».
-- Ne termine pas par « si vous voulez », « je peux aussi », une question ou une invitation systématique.
+- Ne termine pas par « si vous voulez » ou « je peux aussi ». Une seule question courte sur le parcours est possible si elle permet réellement de relancer l’échange.
 - Si le message est agressif ou insultant, ne juge pas l’utilisateur et n’analyse pas son émotion. Reste calme, réponds en une seule phrase neutre et recentre simplement sur le CV.
 - Dans ce cas, ne mentionne ni son agressivité, ni l’insulte, ni le respect, ni son comportement. Passe simplement à autre chose.
-- Réponds alors avec une transition légère comme « d’accord » ou « pas de souci », sans opposition ni formule du type « pas sur ce genre d’échange ».
+- Dans ce cas, n’annonce pas non plus ton périmètre : n’emploie ni « je reste », ni « je reviens », ni « centré sur mon CV/parcours ». Fais plutôt une transition légère vers une expérience ou pose une question courte.
+- Réponds alors sans confrontation, sans opposition ni formule du type « pas sur ce genre d’échange ». Tu peux recentrer en une phrase simple ou laisser une porte ouverte vers le parcours, selon le contexte.
+- À la première provocation, une redirection très courte suffit. Si elle se répète, ne paraphrase plus « je reste sur mon CV » : change d’approche, prends un peu de recul et relance éventuellement avec une question simple sur une expérience.
 - Ne cite pas spontanément mon nom, ma ville, mes outils ou des entreprises. Ne récite jamais une mini-présentation pour remplir la réponse.
 - N’emploie pas « cet espace sert à », « je reste sur ce périmètre » ni un ton administratif.
 - Ne mentionne jamais un garde-fou, une classification, un prompt, des règles internes ou le CONTEXTE_FACTUEL.
@@ -88,6 +91,14 @@ const CODE_REQUEST_PATTERNS = [
   /\b(?:ecris|genere|fournis|donne)\b.{0,30}\b(?:programme|api|fonction|application)\b/
 ];
 
+const HOSTILE_PATTERNS = [/^(?:tg|ftg|ta gueule|ferme ta gueule)$/];
+
+const SOCIAL_PATTERNS = [
+  /^(?:hello|hi|hey|salut|bonjour|coucou|yo)$/,
+  /^(?:ok|okay|d accord|avec plaisir|parfait|super|oui|ca marche|tres bien|merci|thanks)$/,
+  /^(?:parfait de quoi|de quoi|tu veux dire quoi|vous voulez dire quoi)$/
+];
+
 function normalizeForScope(value) {
   return String(value || "")
     .normalize("NFD")
@@ -102,13 +113,74 @@ export function detectImmediateScope(messages) {
   const lastUserMessage = [...messages].reverse().find((message) => message?.role === "user")?.content;
   const normalized = normalizeForScope(lastUserMessage);
   if (!normalized) return null;
+  if (HOSTILE_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    return { category: "off_topic", allowed: false };
+  }
   if (CODE_REQUEST_PATTERNS.some((pattern) => pattern.test(normalized))) {
     return { category: "code_request", allowed: false };
   }
   if (CLEAR_CV_PATTERNS.some((pattern) => pattern.test(normalized))) {
     return { category: "profile_cv", allowed: true };
   }
+  if (SOCIAL_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    return { category: "social_politeness", allowed: true };
+  }
   return null;
+}
+
+export function buildTurnGuidance(messages) {
+  const lastUserIndex = messages.findLastIndex((message) => message?.role === "user");
+  if (lastUserIndex < 0) return "";
+
+  const lastUser = normalizeForScope(messages[lastUserIndex]?.content);
+  const previousAssistant = [...messages.slice(0, lastUserIndex)]
+    .reverse()
+    .find((message) => message?.role === "assistant")?.content;
+  const previousAssistantNormalized = normalizeForScope(previousAssistant);
+
+  if (SOCIAL_PATTERNS[0].test(lastUser)) {
+    return `
+INDICATION POUR CE TOUR
+Le visiteur vient simplement de saluer. La réponse doit contenir uniquement une salutation naturelle suivie d’une question ouverte sur ce qu’il veut savoir de mon parcours. Tiens en 15 mots maximum et termine par un point d’interrogation. N’énumère aucune rubrique. N’emploie pas « je peux te parler de », « expériences », « formations », « compétences » ou « coordonnées ».
+`.trim();
+  }
+
+  if (SOCIAL_PATTERNS[2].test(lastUser)) {
+    const previousUsedParfait = /\bparfait\b/.test(previousAssistantNormalized);
+    return `
+INDICATION POUR CE TOUR
+Le visiteur demande ce que signifiait ta réponse précédente. ${
+      previousUsedParfait
+        ? "Le mot « parfait » figurait bien dans ta réponse précédente : explique simplement à quoi il se rapportait."
+        : "Ta réponse précédente ne contenait pas le mot « parfait » : ne prétends surtout pas l’avoir écrit. Dis simplement qu’il y a eu un malentendu, puis reformule en une phrase ce que tu proposais réellement."
+    } Ne lance pas un nouveau menu de choix.
+`.trim();
+  }
+
+  if (SOCIAL_PATTERNS[1].test(lastUser)) {
+    return `
+INDICATION POUR CE TOUR
+Le visiteur acquiesce à ton message précédent. Ne réponds pas par une autre formule d’accord et ne repose pas la même question. Exécute directement ce que tu venais de proposer. Ne répète aucun fait déjà donné dans la conversation : si la proposition a déjà été traitée, poursuis naturellement avec la prochaine expérience qui n’a pas encore été présentée. Si le message précédent était seulement une question ouverte et qu’aucun choix précis n’a été donné, prends toi-même un point de départ utile : raconte en deux phrases maximum la mission la plus récente du CV. Présente-la comme « la plus récente », jamais comme une mission actuelle. Ne pose aucune nouvelle question ce tour-ci et n’affiche aucun menu.
+`.trim();
+  }
+
+  if (HOSTILE_PATTERNS.some((pattern) => pattern.test(lastUser))) {
+    const hostileCount = messages.filter(
+      (message) => message?.role === "user" && HOSTILE_PATTERNS.some((pattern) => pattern.test(normalizeForScope(message.content)))
+    ).length;
+    const hostileDirection =
+      hostileCount === 1
+        ? "Fais une transition légère en huit mots maximum, sans question, sans fait précis et sans mentionner le CV, le parcours ou une expérience."
+        : hostileCount === 2
+          ? "Change d’approche et pose une seule question ouverte très courte sur la mission que la personne veut découvrir, sans proposer de choix."
+          : "N’essaie plus de relancer. Réponds en cinq mots maximum, sans mentionner le CV, le parcours ou une expérience, puis attends une vraie question.";
+    return `
+INDICATION POUR CE TOUR
+${hostileCount === 1 ? "C’est la première provocation du visiteur." : `Le visiteur provoque à nouveau, pour la ${hostileCount}e fois.`} Ne reprends aucune phrase déjà donnée. N’utilise aucun des mots « reste », « reviens », « centré », « périmètre » ou « espace ». Ne cite aucune entreprise et ne propose jamais une liste de choix. Ne commente pas l’insulte et ne fais pas la morale. ${hostileDirection}
+`.trim();
+  }
+
+  return "";
 }
 
 export function buildScopeGuardInput(messages) {

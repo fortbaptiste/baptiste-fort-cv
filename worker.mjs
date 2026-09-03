@@ -1,6 +1,7 @@
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
 import {
   buildScopeGuardInput,
+  buildTurnGuidance,
   detectImmediateScope,
   OUT_OF_SCOPE_INSTRUCTIONS,
   parseScopeDecision,
@@ -248,9 +249,12 @@ async function handleChat(request, env) {
   const body = await readJson(request);
   const messages = cleanMessages(body.messages);
   const scope = await classifyScope(messages, env);
-  const instructions = scope.allowed
+  const baseInstructions = scope.allowed
     ? `${SYSTEM_PROMPT}\n\n${FACTUAL_CONTEXT}`
-    : `${OUT_OF_SCOPE_INSTRUCTIONS}\n\n${FACTUAL_CONTEXT}`;
+    : OUT_OF_SCOPE_INSTRUCTIONS;
+  const turnGuidance = buildTurnGuidance(messages);
+  const instructions = turnGuidance ? `${baseInstructions}\n\n${turnGuidance}` : baseInstructions;
+  const responseInput = scope.allowed ? messages : [messages.at(-1)];
 
   const upstream = await fetch(`${OPENAI_API}/responses`, {
     method: "POST",
@@ -258,7 +262,7 @@ async function handleChat(request, env) {
     body: JSON.stringify({
       model: CHAT_MODEL,
       instructions,
-      input: messages,
+      input: responseInput,
       reasoning: { effort: scope.allowed ? "low" : "none" },
       text: { verbosity: "low" },
       max_output_tokens: scope.allowed ? 1200 : 80,
