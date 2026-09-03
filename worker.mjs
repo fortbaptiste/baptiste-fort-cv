@@ -260,6 +260,7 @@ async function handleChat(request, env) {
       instructions,
       input: messages,
       reasoning: { effort: scope.allowed ? "low" : "none" },
+      text: { verbosity: "low" },
       max_output_tokens: scope.allowed ? 1200 : 80,
       store: false,
       stream: true
