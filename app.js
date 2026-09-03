@@ -197,14 +197,17 @@ function appendMessage(role, text = "") {
     bubble.textContent = text;
     article.append(bubble);
   } else {
-    const spark = document.createElement("div");
-    spark.className = "answer-spark";
-    spark.setAttribute("aria-hidden", "true");
-    spark.textContent = "✦";
+    const avatar = document.createElement("span");
+    avatar.className = "answer-avatar";
+    avatar.setAttribute("aria-hidden", "true");
+    const avatarImage = document.createElement("img");
+    avatarImage.src = "assets/baptiste-fort.jpg";
+    avatarImage.alt = "";
+    avatar.append(avatarImage);
     const content = document.createElement("div");
     content.className = "message-content answer-content";
     content.textContent = text;
-    article.append(spark, content);
+    article.append(avatar, content);
   }
 
   messageList.append(article);
