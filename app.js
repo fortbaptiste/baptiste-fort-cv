@@ -201,7 +201,7 @@ function appendMessage(role, text = "") {
     avatar.className = "answer-avatar";
     avatar.setAttribute("aria-hidden", "true");
     const avatarImage = document.createElement("img");
-    avatarImage.src = "assets/baptiste-fort.jpg";
+    avatarImage.src = "assets/baptiste-fort.png";
     avatarImage.alt = "";
     avatar.append(avatarImage);
     const content = document.createElement("div");

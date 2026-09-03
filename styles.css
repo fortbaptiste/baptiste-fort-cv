@@ -353,8 +353,8 @@ svg {
   height: 100%;
   object-fit: cover;
   object-position: 50% 28%;
-  transform: scale(1.16);
-  transform-origin: 50% 34%;
+  transform: scale(1.7);
+  transform-origin: 50% 25%;
 }
 
 .profile-copy {
