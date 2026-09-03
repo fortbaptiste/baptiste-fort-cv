@@ -203,6 +203,8 @@ function appendMessage(role, text = "") {
     const avatarImage = document.createElement("img");
     avatarImage.src = "assets/baptiste-fort-portrait.png";
     avatarImage.alt = "";
+    avatarImage.width = 28;
+    avatarImage.height = 28;
     avatar.append(avatarImage);
     const content = document.createElement("div");
     content.className = "message-content answer-content";
