@@ -1,6 +1,7 @@
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
 import {
   buildScopeGuardInput,
+  detectImmediateScope,
   OUT_OF_SCOPE_INSTRUCTIONS,
   parseScopeDecision,
   SCOPE_DECISION_FORMAT,
@@ -157,6 +158,8 @@ function openAiHeaders(env) {
 }
 
 async function classifyScope(messages, env) {
+  const immediateScope = detectImmediateScope(messages);
+  if (immediateScope) return immediateScope;
   const upstream = await fetch(`${OPENAI_API}/responses`, {
     method: "POST",
     headers: openAiHeaders(env),
@@ -257,7 +260,7 @@ async function handleChat(request, env) {
       instructions,
       input: messages,
       reasoning: { effort: scope.allowed ? "low" : "none" },
-      max_output_tokens: scope.allowed ? 450 : 100,
+      max_output_tokens: scope.allowed ? 1200 : 80,
       store: false,
       stream: true
     })

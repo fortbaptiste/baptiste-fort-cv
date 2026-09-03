@@ -323,6 +323,11 @@ async function sendMessage(text) {
   } catch (error) {
     if (error.name === "AbortError") {
       assistant.remove();
+    } else if (answer.trim()) {
+      assistant.classList.remove("is-loading");
+      content.innerHTML = markdown(answer.trim());
+      messages.push({ role: "assistant", content: answer.trim() });
+      showToast("Une partie de la réponse a bien été conservée.");
     } else {
       assistant.classList.remove("is-loading");
       answer = error.message || "Je rencontre un souci de connexion. Réessayez dans un instant.";

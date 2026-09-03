@@ -6,6 +6,7 @@ import OpenAI from "openai";
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
 import {
   buildScopeGuardInput,
+  detectImmediateScope,
   OUT_OF_SCOPE_INSTRUCTIONS,
   parseScopeDecision,
   SCOPE_DECISION_FORMAT,
@@ -151,6 +152,8 @@ function sse(res, payload) {
 }
 
 async function classifyScope(messages) {
+  const immediateScope = detectImmediateScope(messages);
+  if (immediateScope) return immediateScope;
   const response = await client.responses.create({
     model: CHAT_MODEL,
     instructions: SCOPE_GUARD_INSTRUCTIONS,
@@ -194,7 +197,7 @@ async function handleChat(req, res) {
       instructions,
       input: messages,
       reasoning: { effort: scope.allowed ? "low" : "none" },
-      max_output_tokens: scope.allowed ? 450 : 100,
+      max_output_tokens: scope.allowed ? 1200 : 80,
       store: false,
       stream: true
     });
