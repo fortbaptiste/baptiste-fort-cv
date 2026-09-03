@@ -6,7 +6,7 @@ import OpenAI from "openai";
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
 import {
   buildScopeGuardInput,
-  OUT_OF_SCOPE_RESPONSE,
+  OUT_OF_SCOPE_INSTRUCTIONS,
   parseScopeDecision,
   SCOPE_DECISION_FORMAT,
   SCOPE_GUARD_INSTRUCTIONS
@@ -133,14 +133,15 @@ function cleanMessages(value) {
   return messages;
 }
 
-function initSse(res) {
+function initSse(res, scope = "allowed") {
   res.writeHead(200, {
     ...securityHeaders(),
     "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
     "X-Accel-Buffering": "no",
-    "X-Portfolio-AI-Model": CHAT_MODEL
+    "X-Portfolio-AI-Model": CHAT_MODEL,
+    "X-Portfolio-Scope": scope
   });
   res.flushHeaders?.();
 }
@@ -182,21 +183,18 @@ async function handleChat(req, res) {
     return json(res, 502, { error: "Le périmètre de la question n’a pas pu être vérifié. Réessayez dans un instant." });
   }
 
-  initSse(res);
-
-  if (!scope.allowed) {
-    sse(res, { type: "delta", delta: OUT_OF_SCOPE_RESPONSE });
-    sse(res, { type: "done" });
-    return res.end();
-  }
+  initSse(res, scope.allowed ? "allowed" : scope.category);
+  const instructions = scope.allowed
+    ? `${SYSTEM_PROMPT}\n\n${FACTUAL_CONTEXT}`
+    : `${OUT_OF_SCOPE_INSTRUCTIONS}\n\n${FACTUAL_CONTEXT}`;
 
   try {
     const stream = await client.responses.create({
       model: CHAT_MODEL,
-      instructions: `${SYSTEM_PROMPT}\n\n${FACTUAL_CONTEXT}`,
+      instructions,
       input: messages,
-      reasoning: { effort: "low" },
-      max_output_tokens: 650,
+      reasoning: { effort: scope.allowed ? "low" : "none" },
+      max_output_tokens: scope.allowed ? 450 : 100,
       store: false,
       stream: true
     });
@@ -257,7 +255,7 @@ async function handleTranscription(req, res) {
       model: TRANSCRIBE_MODEL,
       response_format: "json",
       language: "fr",
-      prompt: "Conversation professionnelle au sujet du CV de Baptiste Fort, AI Engineer : n8n, RAG, agents IA, SAGS, BrokerOne, Prévoté, ABILWAYS, SOMA, Vitreflam."
+      prompt: "Conversation au sujet du CV de Baptiste Fort, AI Automation Engineer : SERRULINK, FOLLOWORKS, SAGS, MARBERA, BONAPARTE, VITREFLAM, LE MARTIN HOTEL, AEMI, PRÉVOTÉ, BROKERONE, FREELANCE, ABILWAYS ACADEMY et AUTO24."
     });
     const text = transcription.text;
     return json(res, 200, { text: String(text || "").trim() });

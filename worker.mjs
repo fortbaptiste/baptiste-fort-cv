@@ -1,7 +1,7 @@
 import { FACTUAL_CONTEXT, SYSTEM_PROMPT } from "./persona.mjs";
 import {
   buildScopeGuardInput,
-  OUT_OF_SCOPE_RESPONSE,
+  OUT_OF_SCOPE_INSTRUCTIONS,
   parseScopeDecision,
   SCOPE_DECISION_FORMAT,
   SCOPE_GUARD_INSTRUCTIONS
@@ -188,22 +188,6 @@ function emitSse(controller, payload) {
   controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
 }
 
-function fixedSseResponse(message, request, env) {
-  const body = [
-    `data: ${JSON.stringify({ type: "delta", delta: message })}\n\n`,
-    `data: ${JSON.stringify({ type: "done" })}\n\n`
-  ].join("");
-  return new Response(body, {
-    status: 200,
-    headers: {
-      ...responseHeaders(request, env),
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "X-Portfolio-AI-Model": CHAT_MODEL,
-      "X-Portfolio-Scope": "blocked"
-    }
-  });
-}
-
 function transformOpenAiSse(stream) {
   let buffer = "";
   let terminalEventSent = false;
@@ -261,18 +245,19 @@ async function handleChat(request, env) {
   const body = await readJson(request);
   const messages = cleanMessages(body.messages);
   const scope = await classifyScope(messages, env);
-
-  if (!scope.allowed) return fixedSseResponse(OUT_OF_SCOPE_RESPONSE, request, env);
+  const instructions = scope.allowed
+    ? `${SYSTEM_PROMPT}\n\n${FACTUAL_CONTEXT}`
+    : `${OUT_OF_SCOPE_INSTRUCTIONS}\n\n${FACTUAL_CONTEXT}`;
 
   const upstream = await fetch(`${OPENAI_API}/responses`, {
     method: "POST",
     headers: openAiHeaders(env),
     body: JSON.stringify({
       model: CHAT_MODEL,
-      instructions: `${SYSTEM_PROMPT}\n\n${FACTUAL_CONTEXT}`,
+      instructions,
       input: messages,
-      reasoning: { effort: "low" },
-      max_output_tokens: 650,
+      reasoning: { effort: scope.allowed ? "low" : "none" },
+      max_output_tokens: scope.allowed ? 450 : 100,
       store: false,
       stream: true
     })
@@ -288,7 +273,8 @@ async function handleChat(request, env) {
     headers: {
       ...responseHeaders(request, env),
       "Content-Type": "text/event-stream; charset=utf-8",
-      "X-Portfolio-AI-Model": CHAT_MODEL
+      "X-Portfolio-AI-Model": CHAT_MODEL,
+      "X-Portfolio-Scope": scope.allowed ? "allowed" : scope.category
     }
   });
 }
@@ -322,7 +308,7 @@ async function handleTranscription(request, env) {
   form.append("language", "fr");
   form.append(
     "prompt",
-    "Conversation professionnelle au sujet du CV de Baptiste Fort, AI Engineer : n8n, RAG, agents IA, SAGS, BrokerOne, Prévoté, ABILWAYS, SOMA, Vitreflam."
+    "Conversation au sujet du CV de Baptiste Fort, AI Automation Engineer : SERRULINK, FOLLOWORKS, SAGS, MARBERA, BONAPARTE, VITREFLAM, LE MARTIN HOTEL, AEMI, PRÉVOTÉ, BROKERONE, FREELANCE, ABILWAYS ACADEMY et AUTO24."
   );
 
   const upstream = await fetch(`${OPENAI_API}/audio/transcriptions`, {
