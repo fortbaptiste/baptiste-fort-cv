@@ -1,7 +1,7 @@
 export const OUT_OF_SCOPE_INSTRUCTIONS = `
 Tu réponds au nom de Baptiste Fort à une demande qui sort du périmètre de son CV interactif.
 
-- Réponds dans la langue et le registre du visiteur, à la première personne, avec des mots courants. S’il tutoie, tu peux tutoyer ; s’il vouvoie, vouvoie aussi.
+- Réponds dans la langue du visiteur, à la première personne, avec des mots courants. En français, vouvoie toujours le visiteur, même s’il me tutoie. N’emploie jamais « tu », « te », « toi », « ton » ou « tes » pour lui parler.
 - Écris une seule phrase si possible, deux au maximum, et 25 mots maximum.
 - Montre brièvement que tu as compris la demande précise, mais n’y réponds pas, même partiellement.
 - Pour une demande hors sujet non agressive, dis simplement que tu restes centré sur ton CV ou ton parcours, avec des mots adaptés à la demande.
@@ -94,10 +94,12 @@ const CODE_REQUEST_PATTERNS = [
 const HOSTILE_PATTERNS = [/^(?:tg|ftg|ta gueule|ferme ta gueule)$/];
 
 const SOCIAL_PATTERNS = [
-  /^(?:hello|hi|hey|salut|bonjour|coucou|yo)$/,
+  /^(?:hello|hi|hey|salut|bonjour|bonsoir|bjr|coucou|yo)$/,
   /^(?:ok|okay|d accord|avec plaisir|parfait|super|oui|ca marche|tres bien|merci|thanks)$/,
   /^(?:parfait de quoi|de quoi|tu veux dire quoi|vous voulez dire quoi)$/
 ];
+
+const DECLINE_PATTERNS = [/^(?:non|non merci|rien|rien merci|pas maintenant|pas pour le moment)$/];
 
 function normalizeForScope(value) {
   return String(value || "")
@@ -122,6 +124,9 @@ export function detectImmediateScope(messages) {
   if (CLEAR_CV_PATTERNS.some((pattern) => pattern.test(normalized))) {
     return { category: "profile_cv", allowed: true };
   }
+  if (DECLINE_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    return { category: "social_politeness", allowed: true };
+  }
   if (SOCIAL_PATTERNS.some((pattern) => pattern.test(normalized))) {
     return { category: "social_politeness", allowed: true };
   }
@@ -138,10 +143,22 @@ export function buildTurnGuidance(messages) {
     .find((message) => message?.role === "assistant")?.content;
   const previousAssistantNormalized = normalizeForScope(previousAssistant);
 
+  if (DECLINE_PATTERNS.some((pattern) => pattern.test(lastUser))) {
+    const isNothing = /^(?:rien|rien merci)$/.test(lastUser);
+    return `
+INDICATION POUR CE TOUR
+Le visiteur décline ce qui vient d’être proposé. Vouvoie-le obligatoirement. Ne réponds jamais seulement « d’accord », « très bien » ou « pas de souci », et ne répète pas la question précédente. ${
+      isNothing
+        ? "Il dit ne rien vouloir : respecte-le sans fermer froidement la conversation. Donne en une seule phrase courte le point le plus utile à retenir sur ce que je construis pour les entreprises, sans poser de question et sans formule commerciale. Ne cite aucune entreprise, aucun outil, aucune date et ne fais pas de liste."
+        : "Ne considère pas ce « non » comme une fin de conversation. Accueille-le brièvement puis change d’angle avec une seule question ouverte, naturelle et différente, sur ce qui l’amène à consulter mon CV. Ne propose aucune liste, aucun choix et n’emploie pas « ou » pour enchaîner plusieurs rubriques."
+    }
+`.trim();
+  }
+
   if (SOCIAL_PATTERNS[0].test(lastUser)) {
     return `
 INDICATION POUR CE TOUR
-Le visiteur vient simplement de saluer. La réponse doit contenir uniquement une salutation naturelle suivie d’une question ouverte sur ce qu’il veut savoir de mon parcours. Tiens en 15 mots maximum et termine par un point d’interrogation. N’énumère aucune rubrique. N’emploie pas « je peux te parler de », « expériences », « formations », « compétences » ou « coordonnées ».
+Le visiteur vient simplement de saluer. Vouvoie-le obligatoirement. La réponse doit contenir uniquement une salutation naturelle suivie d’une question ouverte sur ce qu’il veut savoir de mon parcours. Tiens en 15 mots maximum et termine par un point d’interrogation. N’énumère aucune rubrique. N’emploie pas « je peux vous parler de », « expériences », « formations », « compétences » ou « coordonnées ».
 `.trim();
   }
 
